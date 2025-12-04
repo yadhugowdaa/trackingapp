@@ -36,7 +36,12 @@ export default function LoginScreen({ onLogin, onNavigateSignup }) {
                 await AsyncStorage.setItem('@ikykik_token', 'local_token');
                 onLogin({ name: email.split('@')[0], email });
             } else {
-                Alert.alert('Login Failed', error.response?.data?.message || 'Invalid credentials');
+                // Ensure message is always a string (backend may return array)
+                let errorMsg = error.response?.data?.message || 'Invalid credentials';
+                if (Array.isArray(errorMsg)) {
+                    errorMsg = errorMsg.join(', ');
+                }
+                Alert.alert('Login Failed', String(errorMsg));
             }
         } finally {
             setLoading(false);

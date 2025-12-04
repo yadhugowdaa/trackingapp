@@ -117,8 +117,8 @@ export default function CreateTaskScreen({ onClose, onCreateTask, initialTask = 
                 return;
             }
 
-            // Start native blocking
-            await AppBlocker.startBlocking(lockedAppIds, taskId);
+            // Start native blocking with task name for overlay display
+            await AppBlocker.startBlocking(lockedAppIds, taskId, title.trim());
         }
 
         createTask(taskId, lockedAppIds);

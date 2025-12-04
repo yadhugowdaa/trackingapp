@@ -56,12 +56,18 @@ export default function RewardsScreen({ appUsage = [], tasks = [], onUpdateAppUs
 
     const getUsedMinutes = (packageName) => {
         const ms = usageStats[packageName] || 0;
-        return Math.floor(ms / 60000);
+        // Cap at 30 minutes
+        return Math.min(Math.floor(ms / 60000), 30);
     };
 
     const getRemainingMinutes = (packageName) => {
         const usedMs = usageStats[packageName] || 0;
         return AppBlocker.getRemainingFreeTime(usedMs, 30);
+    };
+
+    const isUsageFull = (packageName) => {
+        const usedMs = usageStats[packageName] || 0;
+        return (usedMs / 60000) >= 30;
     };
 
     const isAppBlocked = (packageName) => {
@@ -165,8 +171,8 @@ export default function RewardsScreen({ appUsage = [], tasks = [], onUpdateAppUs
                                     </Text>
                                 </View>
 
-                                {/* Only show Track button for apps that are in the blocking list */}
-                                {isBlocked && (
+                                {/* Only show Track button for blocked apps that haven't reached 30m yet */}
+                                {isBlocked && !isUsageFull(app.packageName) && (
                                     <TouchableOpacity
                                         style={styles.trackButton}
                                         onPress={() => handleTrackUsage(app.packageName)}

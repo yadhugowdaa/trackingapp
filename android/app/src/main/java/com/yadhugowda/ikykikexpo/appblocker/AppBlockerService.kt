@@ -13,8 +13,11 @@ import android.os.Looper
 import android.provider.Settings
 import androidx.core.app.NotificationCompat
 import org.json.JSONObject
-import java.util.*
 
+/**
+ * App Blocker Service
+ * Monitors foreground apps and shows blocking overlay when blocked app exceeds 30min usage
+ */
 class AppBlockerService : Service() {
 
     private val CHANNEL_ID = "AppBlockerChannel"
@@ -92,6 +95,9 @@ class AppBlockerService : Service() {
         handler?.post(checkRunnable!!)
     }
 
+    // Track which apps we've already shown overlay for (to avoid spamming)
+    private var overlayShownFor = mutableSetOf<String>()
+
     private fun checkCurrentApp() {
         val blockedApps = sharedPrefs.getStringSet("blockedApps", emptySet()) ?: return
         if (blockedApps.isEmpty()) {
@@ -101,21 +107,23 @@ class AppBlockerService : Service() {
 
         val currentApp = getForegroundApp()
         if (currentApp != null && blockedApps.contains(currentApp)) {
-            // App is blocked - track usage
-            val now = System.currentTimeMillis()
-            val elapsed = now - lastCheckTime
-            
-            val currentUsage = appUsageMap.getOrDefault(currentApp, 0L)
-            appUsageMap[currentApp] = currentUsage + elapsed
-            
-            // Save usage stats
-            saveUsageStats()
+            // Reload usage stats to get latest (including simulated usage)
+            loadUsageStats()
             
             // Check if 30 min window exceeded
-            val totalMinutes = (appUsageMap[currentApp] ?: 0) / 60000
+            val totalMs = appUsageMap[currentApp] ?: 0L
+            val totalMinutes = totalMs / 60000
+            
             if (totalMinutes >= FREE_WINDOW_MINUTES) {
-                showBlockingOverlay(currentApp)
+                // Only show overlay once per app (until they leave and come back)
+                if (!overlayShownFor.contains(currentApp)) {
+                    overlayShownFor.add(currentApp)
+                    showBlockingOverlay(currentApp)
+                }
             }
+        } else {
+            // User left blocked app - clear the shown tracker
+            overlayShownFor.clear()
         }
         
         lastCheckTime = System.currentTimeMillis()
@@ -152,6 +160,7 @@ class AppBlockerService : Service() {
             val json = sharedPrefs.getString("appUsageStats", "{}")
             val jsonObj = JSONObject(json)
             val keys = jsonObj.keys()
+            appUsageMap.clear()
             while (keys.hasNext()) {
                 val key = keys.next()
                 appUsageMap[key] = jsonObj.getLong(key)

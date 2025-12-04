@@ -23,7 +23,12 @@ export default function SignupScreen({ onNavigateLogin }) {
             ]);
         } catch (error) {
             console.error(error);
-            Alert.alert('Signup Failed', error.response?.data?.message || 'Could not connect to server');
+            // Ensure message is always a string (backend may return array)
+            let errorMsg = error.response?.data?.message || 'Could not connect to server';
+            if (Array.isArray(errorMsg)) {
+                errorMsg = errorMsg.join(', ');
+            }
+            Alert.alert('Signup Failed', String(errorMsg));
         } finally {
             setLoading(false);
         }

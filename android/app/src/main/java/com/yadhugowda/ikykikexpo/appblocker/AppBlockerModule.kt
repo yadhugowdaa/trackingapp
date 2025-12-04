@@ -10,13 +10,19 @@ import android.os.Build
 import android.os.Process
 import android.provider.Settings
 import com.facebook.react.bridge.*
-import com.facebook.react.modules.core.DeviceEventManagerModule
+import org.json.JSONObject
 
+/**
+ * App Blocker Native Module
+ * Handles app blocking, usage tracking, and permission management
+ */
 class AppBlockerModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
     private val sharedPrefs = reactContext.getSharedPreferences("AppBlockerPrefs", Context.MODE_PRIVATE)
 
     override fun getName(): String = "AppBlockerModule"
+
+    // ==================== PERMISSION CHECKS ====================
 
     @ReactMethod
     fun hasUsageStatsPermission(promise: Promise) {
@@ -64,6 +70,8 @@ class AppBlockerModule(reactContext: ReactApplicationContext) : ReactContextBase
         reactApplicationContext.startActivity(intent)
     }
 
+    // ==================== INSTALLED APPS ====================
+
     @ReactMethod
     fun getInstalledApps(promise: Promise) {
         try {
@@ -87,8 +95,10 @@ class AppBlockerModule(reactContext: ReactApplicationContext) : ReactContextBase
         }
     }
 
+    // ==================== BLOCKING SERVICES ====================
+
     @ReactMethod
-    fun startBlocking(blockedApps: ReadableArray, taskId: String, promise: Promise) {
+    fun startBlocking(blockedApps: ReadableArray, taskId: String, taskName: String, promise: Promise) {
         try {
             val apps = mutableListOf<String>()
             for (i in 0 until blockedApps.size()) {
@@ -98,6 +108,7 @@ class AppBlockerModule(reactContext: ReactApplicationContext) : ReactContextBase
             sharedPrefs.edit()
                 .putStringSet("blockedApps", apps.toSet())
                 .putString("activeTaskId", taskId)
+                .putString("activeTaskName", taskName) // Store task name for overlay
                 .putLong("blockStartTime", System.currentTimeMillis())
                 .apply()
 
@@ -132,11 +143,60 @@ class AppBlockerModule(reactContext: ReactApplicationContext) : ReactContextBase
         }
     }
 
+    // ==================== USAGE TRACKING ====================
+
     @ReactMethod
     fun getAppUsageStats(promise: Promise) {
         try {
             val usageJson = sharedPrefs.getString("appUsageStats", "{}")
             promise.resolve(usageJson)
+        } catch (e: Exception) {
+            promise.reject("ERROR", e.message)
+        }
+    }
+
+    @ReactMethod
+    fun updateAppUsage(packageName: String, additionalMinutes: Int, promise: Promise) {
+        try {
+            val FREE_WINDOW_MS = 30 * 60 * 1000L // 30 minutes in ms
+            
+            // Load existing usage stats
+            val usageJson = sharedPrefs.getString("appUsageStats", "{}")
+            val jsonObj = JSONObject(usageJson ?: "{}")
+            
+            // Get current usage and add new minutes (converted to ms)
+            val currentMs = if (jsonObj.has(packageName)) jsonObj.getLong(packageName) else 0L
+            val addMs = additionalMinutes * 60000L
+            
+            // Cap at 30 minutes (don't allow more than free window)
+            val newMs = minOf(currentMs + addMs, FREE_WINDOW_MS)
+            
+            // Update the JSON
+            jsonObj.put(packageName, newMs)
+            
+            // Save back to SharedPreferences
+            sharedPrefs.edit().putString("appUsageStats", jsonObj.toString()).apply()
+            
+            // Return updated usage stats
+            promise.resolve(jsonObj.toString())
+        } catch (e: Exception) {
+            promise.reject("ERROR", e.message)
+        }
+    }
+
+    @ReactMethod
+    fun resetAppUsage(packageName: String, promise: Promise) {
+        try {
+            val usageJson = sharedPrefs.getString("appUsageStats", "{}")
+            val jsonObj = JSONObject(usageJson ?: "{}")
+            
+            // Remove this app's usage
+            jsonObj.remove(packageName)
+            
+            // Save back
+            sharedPrefs.edit().putString("appUsageStats", jsonObj.toString()).apply()
+            
+            promise.resolve(true)
         } catch (e: Exception) {
             promise.reject("ERROR", e.message)
         }

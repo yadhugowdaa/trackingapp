@@ -1,4 +1,13 @@
-import { NativeModules, Platform, Alert, Linking } from 'react-native';
+/**
+ * AppBlocker - Native Android App Blocking Module
+ * 
+ * Bridges React Native to native Kotlin code for:
+ * - Getting installed apps
+ * - Blocking apps during focused work
+ * - Tracking app usage time
+ */
+
+import { NativeModules, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { AppBlockerModule } = NativeModules;
@@ -6,14 +15,14 @@ const { AppBlockerModule } = NativeModules;
 // Check if running on Android with native module
 const nativeModuleAvailable = Platform.OS === 'android' && AppBlockerModule != null;
 
-// Storage keys for persistent app blocking data
+// Storage keys
 const STORAGE_KEYS = {
     BLOCKED_APPS: '@ikykik_blocked_apps',
     APP_USAGE: '@ikykik_app_usage',
     BLOCKING_STATUS: '@ikykik_blocking_status',
 };
 
-// Default popular apps list
+// Default apps list (fallback)
 const DEFAULT_INSTALLED_APPS = [
     { packageName: 'com.instagram.android', appName: 'Instagram' },
     { packageName: 'com.google.android.youtube', appName: 'YouTube' },
@@ -30,77 +39,60 @@ const DEFAULT_INSTALLED_APPS = [
 ];
 
 export const AppBlocker = {
-    /**
-     * Check if the native module is available
-     */
     isSupported: () => Platform.OS === 'android',
 
-    /**
-     * Get permission status (always return true for demo since it works)
-     */
+    // ==================== PERMISSIONS ====================
+
     hasUsageStatsPermission: async () => {
         if (nativeModuleAvailable) {
             try {
                 return await AppBlockerModule.hasUsageStatsPermission();
             } catch (error) {
-                console.log('Using demo mode for permissions');
+                console.log('Permission check failed');
             }
         }
-        return true; // Demo mode - assume granted
+        return true;
     },
 
-    /**
-     * Request Usage Stats permission
-     */
     requestUsageStatsPermission: () => {
         if (nativeModuleAvailable) {
             try {
                 AppBlockerModule.requestUsageStatsPermission();
             } catch (error) {
-                console.log('Demo mode - no native permission request');
+                console.log('Permission request failed');
             }
         }
     },
 
-    /**
-     * Check overlay permission
-     */
     hasOverlayPermission: async () => {
         if (nativeModuleAvailable) {
             try {
                 return await AppBlockerModule.hasOverlayPermission();
             } catch (error) {
-                console.log('Using demo mode for overlay permission');
+                console.log('Overlay check failed');
             }
         }
-        return true; // Demo mode - assume granted
+        return true;
     },
 
-    /**
-     * Request Overlay permission
-     */
     requestOverlayPermission: () => {
         if (nativeModuleAvailable) {
             try {
                 AppBlockerModule.requestOverlayPermission();
             } catch (error) {
-                console.log('Demo mode - no native permission request');
+                console.log('Overlay request failed');
             }
         }
     },
 
-    /**
-     * Check all required permissions
-     */
     checkPermissions: async () => {
         const hasUsageStats = await AppBlocker.hasUsageStatsPermission();
         const hasOverlay = await AppBlocker.hasOverlayPermission();
         return { hasUsageStats, hasOverlay, isSupported: Platform.OS === 'android' };
     },
 
-    /**
-     * Get list of installed apps
-     */
+    // ==================== APPS ====================
+
     getInstalledApps: async () => {
         if (nativeModuleAvailable) {
             try {
@@ -109,33 +101,30 @@ export const AppBlocker = {
                     return apps;
                 }
             } catch (error) {
-                console.log('Using default apps list');
+                console.log('Using default apps');
             }
         }
-        // Return default popular apps for demo
         return DEFAULT_INSTALLED_APPS;
     },
 
-    /**
-     * Start blocking specified apps for a task
-     */
-    startBlocking: async (packageNames, taskId) => {
+    // ==================== BLOCKING ====================
+
+    startBlocking: async (packageNames, taskId, taskName = 'your pending task') => {
         try {
-            // Save blocking status to storage
             const blockingStatus = {
                 isActive: true,
                 taskId: taskId,
+                taskName: taskName,
                 blockedApps: packageNames,
                 startTime: Date.now(),
             };
             await AsyncStorage.setItem(STORAGE_KEYS.BLOCKING_STATUS, JSON.stringify(blockingStatus));
 
-            // Try native module
             if (nativeModuleAvailable) {
                 try {
-                    return await AppBlockerModule.startBlocking(packageNames, taskId);
+                    return await AppBlockerModule.startBlocking(packageNames, taskId, taskName);
                 } catch (error) {
-                    console.log('Native blocking not available, using storage-based tracking');
+                    console.log('Native blocking not available');
                 }
             }
             return true;
@@ -145,12 +134,8 @@ export const AppBlocker = {
         }
     },
 
-    /**
-     * Stop blocking all apps
-     */
     stopBlocking: async () => {
         try {
-            // Clear blocking status
             const emptyStatus = {
                 isActive: false,
                 taskId: null,
@@ -173,87 +158,84 @@ export const AppBlocker = {
         }
     },
 
-    /**
-     * Get app usage statistics from storage
-     */
+    // ==================== USAGE TRACKING ====================
+
     getAppUsageStats: async () => {
+        // Try native first (reads from SharedPreferences that service uses)
+        if (nativeModuleAvailable) {
+            try {
+                const usageJson = await AppBlockerModule.getAppUsageStats();
+                return JSON.parse(usageJson || '{}');
+            } catch (error) {
+                console.log('Native usage stats failed');
+            }
+        }
+        // Fallback
         try {
             const stored = await AsyncStorage.getItem(STORAGE_KEYS.APP_USAGE);
-            if (stored) {
-                return JSON.parse(stored);
-            }
+            return stored ? JSON.parse(stored) : {};
         } catch (error) {
-            console.error('Error getting app usage:', error);
-        }
-        return {};
-    },
-
-    /**
-     * Update app usage (call when tracking app usage)
-     */
-    updateAppUsage: async (packageName, additionalMinutes) => {
-        try {
-            const usage = await AppBlocker.getAppUsageStats();
-            const currentMs = usage[packageName] || 0;
-            usage[packageName] = currentMs + (additionalMinutes * 60000);
-            await AsyncStorage.setItem(STORAGE_KEYS.APP_USAGE, JSON.stringify(usage));
-            return usage;
-        } catch (error) {
-            console.error('Error updating app usage:', error);
             return {};
         }
     },
 
-    /**
-     * Reset daily app usage (call at midnight or on new day)
-     */
+    updateAppUsage: async (packageName, additionalMinutes) => {
+        // Use native module to update SharedPreferences (syncs with service)
+        if (nativeModuleAvailable) {
+            try {
+                const usageJson = await AppBlockerModule.updateAppUsage(packageName, additionalMinutes);
+                return JSON.parse(usageJson || '{}');
+            } catch (error) {
+                console.log('Native update failed, using fallback');
+            }
+        }
+        // Fallback
+        try {
+            const usage = await AppBlocker.getAppUsageStats();
+            const currentMs = usage[packageName] || 0;
+            // Cap at 30 minutes
+            usage[packageName] = Math.min(currentMs + (additionalMinutes * 60000), 30 * 60000);
+            await AsyncStorage.setItem(STORAGE_KEYS.APP_USAGE, JSON.stringify(usage));
+            return usage;
+        } catch (error) {
+            return {};
+        }
+    },
+
     resetDailyUsage: async () => {
         try {
             await AsyncStorage.setItem(STORAGE_KEYS.APP_USAGE, JSON.stringify({}));
         } catch (error) {
-            console.error('Error resetting daily usage:', error);
+            console.error('Error resetting usage');
         }
     },
 
-    /**
-     * Get current blocking status from storage
-     */
     getBlockingStatus: async () => {
         try {
             const stored = await AsyncStorage.getItem(STORAGE_KEYS.BLOCKING_STATUS);
-            if (stored) {
-                return JSON.parse(stored);
-            }
+            return stored ? JSON.parse(stored) : { isActive: false, taskId: null, blockedApps: [], startTime: 0 };
         } catch (error) {
-            console.error('Error getting blocking status:', error);
+            return { isActive: false, taskId: null, blockedApps: [], startTime: 0 };
         }
-        return { isActive: false, taskId: null, blockedApps: [], startTime: 0 };
     },
 
-    /**
-     * Format milliseconds to "Xh Ym" or "Xm"
-     */
+    // ==================== UTILITIES ====================
+
     formatUsageTime: (ms) => {
         const minutes = Math.floor(ms / 60000);
         if (minutes >= 60) {
             const hours = Math.floor(minutes / 60);
-            const remainingMinutes = minutes % 60;
-            return `${hours}h ${remainingMinutes}m`;
+            const remaining = minutes % 60;
+            return `${hours}h ${remaining}m`;
         }
         return `${minutes}m`;
     },
 
-    /**
-     * Gets remaining free window time in minutes
-     */
     getRemainingFreeTime: (usedMs, freeWindowMinutes = 30) => {
         const usedMinutes = Math.floor(usedMs / 60000);
         return Math.max(0, freeWindowMinutes - usedMinutes);
     },
 
-    /**
-     * Check if free window is exceeded
-     */
     isFreeWindowExceeded: (usedMs, freeWindowMinutes = 30) => {
         return (usedMs / 60000) >= freeWindowMinutes;
     },
