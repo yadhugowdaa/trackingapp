@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IKYKIK - Full App Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientShift {
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        .blur-circle {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.6;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .blur-circle-1 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, #ff6b9d 0%, transparent 70%);
+            top: -100px;
+            left: -100px;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .blur-circle-2 {
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, #4facfe 0%, transparent 70%);
+            bottom: -150px;
+            right: -100px;
+            animation: float 25s ease-in-out infinite reverse;
+        }
+
+        .blur-circle-3 {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, #f093fb 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: float 30s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            33% {
+                transform: translate(30px, -50px) scale(1.1);
+            }
+
+            66% {
+                transform: translate(-20px, 20px) scale(0.9);
+            }
+        }
+
+        .app-container {
+            position: relative;
+            z-index: 2;
+            max-width: 500px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(20px);
+        }
+
+        /* Login Screen */
+        .screen {
+            display: none;
+            padding: 40px 24px;
+            min-height: 100vh;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .logo {
+            font-size: 48px;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            margin-top: 80px;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.8);
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(30px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+            margin-bottom: 16px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            display: block;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .glass-input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .glass-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .glass-input:focus {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #007AFF 0%, #0051D5 100%);
+            color: white;
+            box-shadow: 0 8px 24px rgba(0, 122, 255, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(0, 122, 255, 0.5);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            gap: 8px;
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #007AFF 0%, #0051D5 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        /* App Screens */
+        .screen-title {
+            font-size: 32px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 24px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .task-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .task-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 6px;
+        }
+
+        .task-desc {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 12px;
+        }
+
+        .priority-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .priority-high {
+            background: #FF3B30;
+        }
+
+        .priority-medium {
+            background: #FF9500;
+        }
+
+        .priority-low {
+            background: #34C759;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 12px;
+        }
+
+        .metric-title {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .color-success {
+            color: #34C759;
+        }
+
+        .color-primary {
+            color: #007AFF;
+        }
+
+        .color-warning {
+            color: #FF9500;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #007AFF 0%, #0051D5 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 32px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .profile-name {
+            font-size: 24px;
+            font-weight: 600;
+            color: white;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
+        .profile-email {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .btn-danger {
+            background: #FF3B30;
+            color: white;
+            box-shadow: 0 8px 24px rgba(255, 59, 48, 0.4);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="blur-circle blur-circle-1"></div>
+    <div class="blur-circle blur-circle-2"></div>
+    <div class="blur-circle blur-circle-3"></div>
+
+    <div class="app-container">
+        <!-- Login Screen -->
+        <div class="screen active" id="login-screen">
+            <div class="logo">IKYKIK</div>
+            <div class="subtitle">Welcome Back</div>
+
+            <div class="glass-card">
+                <div class="input-group">
+                    <label class="input-label">Email</label>
+                    <input type="email" class="glass-input" placeholder="Enter your email" id="email-input">
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Password</label>
+                    <input type="password" class="glass-input" placeholder="Enter your password" id="password-input">
+                </div>
+
+                <button class="btn btn-primary" onclick="login()">Login</button>
+            </div>
+        </div>
+
+        <!-- Tasks Screen -->
+        <div class="screen" id="tasks-screen">
+            <div class="tab-nav">
+                <button class="tab-btn active" onclick="showScreen('tasks')">Tasks</button>
+                <button class="tab-btn" onclick="showScreen('analytics')">Analytics</button>
+                <button class="tab-btn" onclick="showScreen('rewards')">Rewards</button>
+                <button class="tab-btn" onclick="showScreen('profile')">Profile</button>
+            </div>
+
+            <div style="padding: 24px;">
+                <div class="screen-title">My Tasks</div>
+
+                <div class="task-card">
+                    <div class="task-title">Complete IKYKIK Assignment</div>
+                    <div class="task-desc">Build production-level to-do app with backend microservices</div>
+                    <span class="priority-badge priority-high">HIGH PRIORITY</span>
+                </div>
+
+                <div class="task-card">
+                    <div class="task-title">Setup Android Studio</div>
+                    <div class="task-desc">Configure SDK, build tools, and test on phone</div>
+                    <span class="priority-badge priority-medium">MEDIUM PRIORITY</span>
+                </div>
+
+                <div class="task-card">
+                    <div class="task-title">Test Backend Services</div>
+                    <div class="task-desc">Verify all 6 microservices are working correctly</div>
+                    <span class="priority-badge priority-low">LOW PRIORITY</span>
+                </div>
+
+                <button class="btn btn-primary" style="margin-top: 16px;">+ Add New Task</button>
+            </div>
+        </div>
+
+        <!-- Analytics Screen -->
+        <div class="screen" id="analytics-screen">
+            <div class="tab-nav">
+                <button class="tab-btn" onclick="showScreen('tasks')">Tasks</button>
+                <button class="tab-btn active" onclick="showScreen('analytics')">Analytics</button>
+                <button class="tab-btn" onclick="showScreen('rewards')">Rewards</button>
+                <button class="tab-btn" onclick="showScreen('profile')">Profile</button>
+            </div>
+
+            <div style="padding: 24px;">
+                <div class="screen-title">Analytics</div>
+
+                <div class="metric-card">
+                    <div class="metric-title">Completion Rate</div>
+                    <div class="metric-value color-success">75%</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-title">Productivity Score</div>
+                    <div class="metric-value color-primary">85/100</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-title">Focus Hours</div>
+                    <div class="metric-value color-success">12.5 hrs</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-title">Streak Days</div>
+                    <div class="metric-value color-warning">7 days 🔥</div>
+                </div>
+
+                <div class="glass-card" style="margin-top: 16px;">
+                    <div class="task-title">Weekly Summary</div>
+                    <div class="task-desc">You completed 15 out of 20 tasks this week. Great progress! Keep it up!</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rewards Screen -->
+        <div class="screen" id="rewards-screen">
+            <div class="tab-nav">
+                <button class="tab-btn" onclick="showScreen('tasks')">Tasks</button>
+                <button class="tab-btn" onclick="showScreen('analytics')">Analytics</button>
+                <button class="tab-btn active" onclick="showScreen('rewards')">Rewards</button>
+                <button class="tab-btn" onclick="showScreen('profile')">Profile</button>
+            </div>
+
+            <div style="padding: 24px;">
+                <div class="screen-title">Rewards</div>
+
+                <div class="task-card">
+                    <div class="task-title">📱 Instagram</div>
+                    <div class="task-desc">15 / 30 minutes remaining today</div>
+                    <div
+                        style="margin-top: 12px; background: rgba(52, 199, 89, 0.2); height: 8px; border-radius: 4px; overflow: hidden;">
+                        <div style="width: 50%; height: 100%; background: #34C759;"></div>
+                    </div>
+                    <span class="priority-badge priority-low" style="margin-top: 12px;">✓ UNLOCKED</span>
+                </div>
+
+                <div class="task-card">
+                    <div class="task-title">🎮 COD Mobile</div>
+                    <div class="task-desc">0 / 30 minutes remaining today</div>
+                    <div
+                        style="margin-top: 12px; background: rgba(255, 59, 48, 0.2); height: 8px; border-radius: 4px; overflow: hidden;">
+                        <div style="width: 0%; height: 100%; background: #FF3B30;"></div>
+                    </div>
+                    <span class="priority-badge priority-high" style="margin-top: 12px;">🔒 LOCKED</span>
+                    <button class="btn btn-primary" style="margin-top: 12px; font-size: 14px;">Complete Task to
+                        Unlock</button>
+                </div>
+
+                <div class="task-card">
+                    <div class="task-title">🎵 YouTube</div>
+                    <div class="task-desc">22 / 30 minutes remaining today</div>
+                    <div
+                        style="margin-top: 12px; background: rgba(52, 199, 89, 0.2); height: 8px; border-radius: 4px; overflow: hidden;">
+                        <div style="width: 73%; height: 100%; background: #34C759;"></div>
+                    </div>
+                    <span class="priority-badge priority-low" style="margin-top: 12px;">✓ UNLOCKED</span>
+                </div>
+
+                <button class="btn btn-primary" style="margin-top: 16px;">+ Add Reward App</button>
+            </div>
+        </div>
+
+        <!-- Profile Screen -->
+        <div class="screen" id="profile-screen">
+            <div class="tab-nav">
+                <button class="tab-btn" onclick="showScreen('tasks')">Tasks</button>
+                <button class="tab-btn" onclick="showScreen('analytics')">Analytics</button>
+                <button class="tab-btn" onclick="showScreen('rewards')">Rewards</button>
+                <button class="tab-btn active" onclick="showScreen('profile')">Profile</button>
+            </div>
+
+            <div style="padding: 24px;">
+                <div class="screen-title">Profile</div>
+
+                <div class="glass-card">
+                    <div class="profile-avatar">Y</div>
+                    <div class="profile-name">Yadhu Gowda</div>
+                    <div class="profile-email">yadhu@example.com</div>
+
+                    <div class="task-desc" style="text-align: center;">
+                        IKYKIK helps you manage tasks with a unique reward system. Complete tasks to unlock your
+                        favorite apps!
+                    </div>
+
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.2);">
+                        <div class="task-desc">✓ Smart task management</div>
+                        <div class="task-desc">✓ Productivity analytics</div>
+                        <div class="task-desc">✓ App usage rewards</div>
+                        <div class="task-desc">✓ Harsh motivation 💀</div>
+                    </div>
+                </div>
+
+                <button class="btn btn-danger" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function login() {
+            const email = document.getElementById('email-input').value;
+            const password = document.getElementById('password-input').value;
+
+            if (email && password) {
+                showScreen('tasks');
+            } else {
+                alert('Please enter email and password');
+            }
+        }
+
+        function showScreen(screenName) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+
+            // Show selected screen
+            document.getElementById(screenName + '-screen').classList.add('active');
+
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        }
+
+        function logout() {
+            document.getElementById('email-input').value = '';
+            document.getElementById('password-input').value = '';
+            showScreen('login');
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IKYKIK - Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Vibrant Colorful Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg,
+                    #667eea 0%,
+                    #764ba2 25%,
+                    #f093fb 50%,
+                    #4facfe 75%,
+                    #00f2fe 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            z-index: -2;
+        }
+
+        /* Animated blur circles in background */
+        .bg-circle {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.6;
+            z-index: -1;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .bg-circle-1 {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, #ff6b9d, #c471ed);
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .bg-circle-2 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, #4facfe, #00f2fe);
+            bottom: 10%;
+            right: 10%;
+            animation-delay: 5s;
+        }
+
+        .bg-circle-3 {
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, #fad961, #f76b1c);
+            top: 50%;
+            left: 50%;
+            animation-delay: 10s;
+        }
+
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            33% {
+                transform: translate(30px, -30px) scale(1.1);
+            }
+
+            66% {
+                transform: translate(-20px, 20px) scale(0.9);
+            }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 380px;
+            padding: 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo {
+            font-size: 42px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 12px;
+            color: #ffffff;
+            text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            text-align: center;
+            margin-bottom: 40px;
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 500;
+            text-shadow: 0 1px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-container {
+            width: 100%;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .label {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+            color: #ffffff;
+            text-shadow: 0 1px 8px rgba(0, 0, 0, 0.2);
+            padding-left: 4px;
+        }
+
+        /* Apple Liquid Glass Effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(30px) saturate(180%);
+            -webkit-backdrop-filter: blur(30px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5),
+                0 1px 2px rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-input-wrapper {
+            position: relative;
+        }
+
+        .glass-input {
+            width: 100%;
+            padding: 16px 18px;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            color: #ffffff;
+            font-weight: 400;
+        }
+
+        .glass-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .glass-input-wrapper:focus-within .glass {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow:
+                0 12px 40px rgba(0, 0, 0, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6),
+                0 0 0 4px rgba(255, 255, 255, 0.1),
+                0 2px 8px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .glass-button {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #007AFF 0%, #0051D5 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow:
+                0 12px 32px rgba(0, 122, 255, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4),
+                0 1px 2px rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            font-size: 17px;
+            font-weight: 600;
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.3),
+                    transparent);
+            transition: left 0.5s;
+        }
+
+        .glass-button:hover::before {
+            left: 100%;
+        }
+
+        .glass-button:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 16px 40px rgba(0, 122, 255, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5),
+                0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .glass-button:active {
+            transform: translateY(0);
+            box-shadow:
+                0 8px 24px rgba(0, 122, 255, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .register-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 32px;
+            font-size: 15px;
+            gap: 6px;
+        }
+
+        .register-text {
+            color: rgba(255, 255, 255, 0.85);
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .register-link {
+            color: #ffffff;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            text-shadow: 0 1px 8px rgba(0, 122, 255, 0.6);
+            transition: all 0.2s;
+            padding: 4px 8px;
+            border-radius: 8px;
+        }
+
+        .register-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            text-shadow: 0 2px 12px rgba(0, 122, 255, 0.8);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            width: 54px;
+            height: 54px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 24px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1) rotate(15deg);
+            box-shadow:
+                0 12px 40px rgba(0, 0, 0, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        }
+
+        .demo-note {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 14px 28px;
+            background: rgba(0, 122, 255, 0.85);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            border-radius: 16px;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 500;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+        }
+
+        /* Smooth entry animation */
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .container {
+            animation: slideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .input-group:nth-child(1) {
+            animation: slideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.1s both;
+        }
+
+        .input-group:nth-child(2) {
+            animation: slideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;
+        }
+
+        .glass-button {
+            animation: slideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.3s both;
+        }
+
+        .register-container {
+            animation: slideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.4s both;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+
+            .logo {
+                font-size: 36px;
+            }
+
+            .subtitle {
+                font-size: 16px;
+                margin-bottom: 32px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Animated background circles -->
+    <div class="bg-circle bg-circle-1"></div>
+    <div class="bg-circle bg-circle-2"></div>
+    <div class="bg-circle bg-circle-3"></div>
+
+    <div class="theme-toggle" onclick="toggleEffect()" title="Toggle Effect">
+        ✨
+    </div>
+
+    <div class="container">
+        <div class="logo">IKYKIK</div>
+        <div class="subtitle">Welcome Back</div>
+
+        <div class="form-container">
+            <div class="input-group">
+                <label class="label">Email</label>
+                <div class="glass-input-wrapper">
+                    <div class="glass">
+                        <input type="email" class="glass-input" placeholder="Enter your email" id="email">
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label class="label">Password</label>
+                <div class="glass-input-wrapper">
+                    <div class="glass">
+                        <input type="password" class="glass-input" placeholder="Enter your password" id="password">
+                    </div>
+                </div>
+            </div>
+
+            <button class="glass-button" onclick="handleLogin()">
+                Login
+            </button>
+
+            <div class="register-container">
+                <span class="register-text">Don't have an account?</span>
+                <a class="register-link" onclick="handleRegister()">Sign Up</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="demo-note">
+        📱 Press F12 → Ctrl+Shift+M for mobile view
+    </div>
+
+    <script>
+        let effectIntensity = 1;
+
+        function toggleEffect() {
+            const circles = document.querySelectorAll('.bg-circle');
+            effectIntensity = effectIntensity === 1 ? 0 : 1;
+
+            circles.forEach(circle => {
+                circle.style.opacity = effectIntensity === 1 ? '0.6' : '0.3';
+            });
+        }
+
+        function handleLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!email || !password) {
+                alert('Please enter both email and password');
+                return;
+            }
+
+            console.log('Login attempt:', { email, password });
+
+            // Simulate success with animation
+            const button = document.querySelector('.glass-button');
+            button.textContent = '✓ Success!';
+            button.style.background = 'linear-gradient(135deg, #34C759 0%, #30D158 100%)';
+
+            setTimeout(() => {
+                alert('Login functionality will be connected to backend API!\n\nEmail: ' + email);
+                button.textContent = 'Login';
+                button.style.background = 'linear-gradient(135deg, #007AFF 0%, #0051D5 100%)';
+            }, 1500);
+        }
+
+        function handleRegister() {
+            alert('Register screen coming soon!');
+        }
+
+        // Add subtle mouse parallax effect
+        document.addEventListener('mousemove', (e) => {
+            const circles = document.querySelectorAll('.bg-circle');
+            const x = e.clientX / window.innerWidth - 0.5;
+            const y = e.clientY / window.innerHeight - 0.5;
+
+            circles.forEach((circle, index) => {
+                const speed = (index + 1) * 20;
+                circle.style.transform = `translate(${x * speed}px, ${y * speed}px)`;
+            });
+        });
+    </script>
+</body>
+
+</html>

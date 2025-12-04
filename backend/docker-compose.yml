@@ -1,0 +1,124 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: ikykik-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - ikykik-network
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: ikykik-api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - auth-service
+      - task-service
+      - tag-service
+      - analytics-service
+      - notification-service
+      - reward-service
+    networks:
+      - ikykik-network
+
+  auth-service:
+    build: ./auth-service
+    container_name: ikykik-auth-service
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongodb:27017/ikykik_auth
+      - JWT_SECRET=ikykik_super_secret_key_2025
+      - JWT_EXPIRES_IN=7d
+    depends_on:
+      - mongodb
+    networks:
+      - ikykik-network
+
+  task-service:
+    build: ./task-service
+    container_name: ikykik-task-service
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongodb:27017/ikykik_tasks
+    depends_on:
+      - mongodb
+    networks:
+      - ikykik-network
+
+  tag-service:
+    build: ./tag-service
+    container_name: ikykik-tag-service
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongodb:27017/ikykik_tags
+    depends_on:
+      - mongodb
+    networks:
+      - ikykik-network
+
+  analytics-service:
+    build: ./analytics-service
+    container_name: ikykik-analytics-service
+    ports:
+      - "3004:3004"
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongodb:27017/ikykik_analytics
+      - TASK_SERVICE_URL=http://task-service:3002
+    depends_on:
+      - mongodb
+      - task-service
+    networks:
+      - ikykik-network
+
+  notification-service:
+    build: ./notification-service
+    container_name: ikykik-notification-service
+    ports:
+      - "3005:3005"
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongodb:27017/ikykik_notifications
+      - FIREBASE_SERVER_KEY=your_firebase_server_key_here
+      - ANALYTICS_SERVICE_URL=http://analytics-service:3004
+    depends_on:
+      - mongodb
+      - analytics-service
+    networks:
+      - ikykik-network
+
+  reward-service:
+    build: ./reward-service
+    container_name: ikykik-reward-service
+    ports:
+      - "3006:3006"
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongodb:27017/ikykik_rewards
+      - TASK_SERVICE_URL=http://task-service:3002
+    depends_on:
+      - mongodb
+      - task-service
+    networks:
+      - ikykik-network
+
+volumes:
+  mongo_data:
+    driver: local
+
+networks:
+  ikykik-network:
+    driver: bridge
